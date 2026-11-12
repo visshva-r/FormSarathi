@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FormSarathi
 
-## Getting Started
+**Civic Document Intelligence for Bharat** — CodeQuest: National Tech Hackathon 2026 (DotRepo).
 
-First, run the development server:
+Turn Indian government, bank, college, and scheme forms into plain-language guidance (English + Hindi), an action checklist, and a downloadable draft PDF.
+
+## Demo (for judges)
+
+1. Open the **live URL** (Vercel) or run locally.
+2. Click any card under **Seeded forms** (recommended — works without API keys).
+3. Review **Explain** → **Checklist** → **Draft** → **Download draft PDF**.
+
+Optional: upload a form image/PDF if `GEMINI_API_KEY` is configured on the server.
+
+## Run locally
 
 ```bash
+cd formsarathi
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.example` to `.env.local` and add `GEMINI_API_KEY` only if you want live upload analysis.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tech stack
 
-## Learn More
+- Next.js (App Router), TypeScript, Tailwind CSS
+- Vision analysis via Google Gemini (`gemini-2.0-flash`) when API key is set
+- Seeded JSON analyses for reliable hackathon demo
+- Client-side draft PDF export (`jspdf`)
 
-To learn more about Next.js, take a look at the following resources:
+## Project structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `src/app/api/analyze` — sample + upload analysis API
+- `src/data/samples.ts` — five judge-ready form scenarios
+- `src/components` — upload UI and results panel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Disclosure
 
-## Deploy on Vercel
+AI tools were used for development and optional live analysis. Problem framing, architecture, and seeded content are original. No API keys are committed to this repository.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Screenshots
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Add screenshots to `/public/screenshots/` before submission, or capture from the running app:
+Home → select **National Merit Scholarship** → Checklist tab → Download draft PDF.
+
+## Deploy (Vercel)
+
+1. Push this repo to GitHub.
+2. Import project in Vercel, root directory `formsarathi` if monorepo, or deploy this folder as root.
+3. Add environment variable `GEMINI_API_KEY` (optional).
+4. Deploy — submit the production URL on Unstop.
+
+## Scripts
+
+```bash
+npm run build   # production build
+npm run start   # run production server locally
+npm run lint
+```
