@@ -24,7 +24,8 @@ export async function analyzeWithGemini(
   }
 
   const genAI = new GoogleGenerativeAI(key);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const modelId = process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
+  const model = genAI.getGenerativeModel({ model: modelId });
 
   const prompt = `You are FormSarathi, a Civic Document Intelligence assistant for India.
 Analyze this government/bank/college/scheme form image or PDF page.

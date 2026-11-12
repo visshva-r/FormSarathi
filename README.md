@@ -22,7 +22,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Copy `.env.example` to `.env.local` and add `GEMINI_API_KEY` only if you want live upload analysis.
+Copy `.env.example` to `.env.local` and add `GEMINI_API_KEY` for live upload analysis. Default vision model is `gemini-2.5-flash` (override with `GEMINI_MODEL`).
 
 ## Tech stack
 
