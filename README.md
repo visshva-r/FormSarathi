@@ -7,10 +7,12 @@ Turn Indian government, bank, college, and scheme forms into plain-language guid
 ## Demo (for judges)
 
 1. Open the **live URL** (Vercel) or run locally.
-2. Click any card under **Seeded forms** (recommended — works without API keys).
-3. Review **Explain** → **Checklist** → **Draft** → **Download draft PDF**.
+2. Click **National Merit Scholarship** (best full demo).
+3. **Explain** → हिंदी → **Read aloud** → **Checklist** → **Share on WhatsApp** → **Draft** (edit a field) → **Download draft PDF**.
+4. **Verify** tab: fix name typo → status turns green.
+5. Optional: live upload with `GEMINI_API_KEY` on Vercel.
 
-Optional: upload a form image/PDF if `GEMINI_API_KEY` is configured on the server.
+**Technical documentation:** [docs/TECHNICAL.md](docs/TECHNICAL.md)
 
 ## Run locally
 

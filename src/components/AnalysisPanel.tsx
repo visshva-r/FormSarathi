@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormAnalysis } from "@/types/form";
 import { downloadDraftPdf } from "@/lib/export-pdf";
+import { speakText } from "@/lib/speech";
+import { buildChecklistText, whatsAppShareUrl } from "@/lib/share-checklist";
+import { compareNames } from "@/lib/match";
 
-type Tab = "explain" | "checklist" | "draft";
+type Tab = "explain" | "checklist" | "draft" | "verify";
 
 export function AnalysisPanel({
   analysis,
@@ -15,12 +18,89 @@ export function AnalysisPanel({
 }) {
   const [tab, setTab] = useState<Tab>("explain");
   const [lang, setLang] = useState<"en" | "hi">("en");
+  const [draftValues, setDraftValues] = useState<Record<string, string>>({});
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const initial: Record<string, string> = {};
+    analysis.fields.forEach((f) => {
+      initial[f.id] = f.suggestedAnswer ?? "";
+    });
+    setDraftValues(initial);
+  }, [analysis]);
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "explain", label: "Explain" },
     { id: "checklist", label: "Checklist" },
     { id: "draft", label: "Draft" },
+    ...(analysis.verifyTemplate?.length || analysis.fields.some((f) => f.hint)
+      ? [{ id: "verify" as const, label: "Verify" }]
+      : []),
   ];
+
+  const analysisForPdf: FormAnalysis = useMemo(
+    () => ({
+      ...analysis,
+      fields: analysis.fields.map((f) => ({
+        ...f,
+        suggestedAnswer: draftValues[f.id] ?? f.suggestedAnswer,
+      })),
+    }),
+    [analysis, draftValues],
+  );
+
+  const liveVerify = useMemo(() => {
+    const rows: { severity: "ok" | "warn" | "error"; en: string; hi: string }[] = [];
+    analysis.verifyTemplate?.forEach((v) => {
+      if (v.fieldId && v.referenceValue) {
+        const current = draftValues[v.fieldId] ?? "";
+        const result = compareNames(current, v.referenceValue);
+        if (result === "match") {
+          rows.push({
+            severity: "ok",
+            en: `${v.compareLabel ?? "Reference"}: matches "${v.referenceValue}".`,
+            hi: `${v.compareLabel ?? "संदर्भ"}: "${v.referenceValue}" से मेल खाता है।`,
+          });
+        } else if (result === "typo") {
+          rows.push({
+            severity: "warn",
+            en: `Likely typo: draft "${current}" vs ${v.compareLabel ?? "reference"} "${v.referenceValue}".`,
+            hi: `संभावित टाइपो: ड्राफ्ट "${current}" बनाम "${v.referenceValue}".`,
+          });
+        } else {
+          rows.push({
+            severity: "error",
+            en: `Mismatch: draft "${current}" vs ${v.compareLabel ?? "reference"} "${v.referenceValue}".`,
+            hi: `मेल नहीं: ड्राफ्ट "${current}" बनाम "${v.referenceValue}".`,
+          });
+        }
+      } else {
+        rows.push({
+          severity: v.severity,
+          en: v.messageEn,
+          hi: v.messageHi,
+        });
+      }
+    });
+    return rows;
+  }, [analysis.verifyTemplate, draftValues]);
+
+  const onShareWhatsApp = () => {
+    const text = buildChecklistText(analysis, lang);
+    window.open(whatsAppShareUrl(text), "_blank", "noopener,noreferrer");
+  };
+
+  const onCopyChecklist = async () => {
+    const text = buildChecklistText(analysis, lang);
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const onReadSummary = () => {
+    const text = lang === "en" ? analysis.summaryEn : analysis.summaryHi;
+    speakText(text, lang);
+  };
 
   return (
     <div className="rounded-2xl border border-teal-900/10 bg-white shadow-lg shadow-teal-950/5">
@@ -35,7 +115,7 @@ export function AnalysisPanel({
               {lang === "en" ? analysis.summaryEn : analysis.summaryHi}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setLang("en")}
@@ -54,9 +134,16 @@ export function AnalysisPanel({
             >
               हिंदी
             </button>
+            <button
+              type="button"
+              onClick={onReadSummary}
+              className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-950 hover:bg-amber-200"
+            >
+              Read aloud
+            </button>
           </div>
         </div>
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex flex-wrap gap-2">
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -90,6 +177,35 @@ export function AnalysisPanel({
 
         {tab === "checklist" && (
           <div className="space-y-6">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={onShareWhatsApp}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                Share checklist on WhatsApp
+              </button>
+              <button
+                type="button"
+                onClick={onCopyChecklist}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              >
+                {copied ? "Copied!" : "Copy checklist"}
+              </button>
+            </div>
+            {analysis.portalUrl && (
+              <p className="text-sm text-slate-700">
+                Official portal:{" "}
+                <a
+                  href={analysis.portalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-teal-800 underline underline-offset-2"
+                >
+                  {analysis.portalLabel ?? analysis.portalUrl}
+                </a>
+              </p>
+            )}
             <ol className="space-y-3">
               {analysis.checklist.map((c) => (
                 <li
@@ -125,7 +241,8 @@ export function AnalysisPanel({
         {tab === "draft" && (
           <div className="space-y-4">
             <p className="text-sm text-slate-600">
-              Suggested answers — review and edit before any official submission.
+              Suggested answers — review and edit before any official submission. Edits are included
+              in the exported PDF.
             </p>
             <div className="space-y-3">
               {analysis.fields.map((f) => (
@@ -133,20 +250,53 @@ export function AnalysisPanel({
                   <span className="text-xs font-semibold uppercase tracking-wide text-teal-800">
                     {f.label}
                   </span>
+                  {f.hint && <span className="ml-2 text-xs text-amber-800">({f.hint})</span>}
                   <input
                     className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                    defaultValue={f.suggestedAnswer}
+                    value={draftValues[f.id] ?? ""}
+                    onChange={(e) =>
+                      setDraftValues((prev) => ({ ...prev, [f.id]: e.target.value }))
+                    }
                   />
                 </label>
               ))}
             </div>
             <button
               type="button"
-              onClick={() => downloadDraftPdf(analysis)}
+              onClick={() => downloadDraftPdf(analysisForPdf)}
               className="rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-semibold text-slate-900 hover:bg-amber-400"
             >
-              Download draft PDF
+              Download draft PDF (with your edits)
             </button>
+          </div>
+        )}
+
+        {tab === "verify" && (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Rejection guard: cross-check draft spelling against supporting IDs before you submit.
+              Edit the Draft tab and return here to refresh.
+            </p>
+            {liveVerify.length === 0 ? (
+              <p className="text-sm text-slate-500">No verification rules for this form yet.</p>
+            ) : (
+              <ul className="space-y-3">
+                {liveVerify.map((row, i) => (
+                  <li
+                    key={i}
+                    className={`rounded-xl border px-4 py-3 text-sm ${
+                      row.severity === "ok"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                        : row.severity === "warn"
+                          ? "border-amber-200 bg-amber-50 text-amber-950"
+                          : "border-red-200 bg-red-50 text-red-950"
+                    }`}
+                  >
+                    {lang === "en" ? row.en : row.hi}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
       </div>

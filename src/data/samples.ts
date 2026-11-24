@@ -80,10 +80,27 @@ export const SAMPLE_ANALYSES: Record<string, FormAnalysis> = {
       "Wrong IFSC or account number for DBT",
     ],
     fields: [
-      { id: "name", label: "Full name (as per Aadhaar)", suggestedAnswer: "[Your full legal name]" },
+      {
+        id: "name",
+        label: "Full name (as per Aadhaar)",
+        suggestedAnswer: "Priya Sharmaa",
+        hint: "Must match Aadhaar spelling",
+      },
       { id: "income", label: "Annual family income (INR)", suggestedAnswer: "[Amount from income certificate]" },
       { id: "percentage", label: "Last exam aggregate %", suggestedAnswer: "[e.g. 87.4%]" },
       { id: "bank", label: "Bank account for scholarship credit", suggestedAnswer: "[Account no. + IFSC]" },
+    ],
+    portalUrl: "https://scholarships.gov.in",
+    portalLabel: "National Scholarship Portal",
+    verifyTemplate: [
+      {
+        severity: "warn",
+        messageEn: "Name looks like a typo vs Aadhaar (Priya Sharma vs Priya Sharmaa). Fix before submit.",
+        messageHi: "नाम आधार से मेल नहीं खाता (Priya Sharma बनाम Priya Sharmaa)। जमा करने से पहले सुधारें।",
+        fieldId: "name",
+        compareLabel: "Aadhaar record",
+        referenceValue: "Priya Sharma",
+      },
     ],
     generatedAt: now(),
   },
@@ -118,6 +135,8 @@ export const SAMPLE_ANALYSES: Record<string, FormAnalysis> = {
       { id: "aadhaar", label: "Aadhaar number", suggestedAnswer: "XXXX XXXX [last 4]" },
       { id: "address", label: "New full address", suggestedAnswer: "[House no., street, city, state, PIN]" },
     ],
+    portalUrl: "https://myaadhaar.uidai.gov.in",
+    portalLabel: "myAadhaar (UIDAI)",
     generatedAt: now(),
   },
   "bank-kyc": {

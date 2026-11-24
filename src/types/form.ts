@@ -5,6 +5,15 @@ export type FormField = {
   suggestedAnswer?: string;
 };
 
+export type VerifyCheck = {
+  severity: "ok" | "warn" | "error";
+  messageEn: string;
+  messageHi: string;
+  fieldId?: string;
+  compareLabel?: string;
+  referenceValue?: string;
+};
+
 export type FormAnalysis = {
   formTitle: string;
   category: string;
@@ -15,6 +24,9 @@ export type FormAnalysis = {
   requiredDocuments: string[];
   pitfalls: string[];
   fields: FormField[];
+  portalUrl?: string;
+  portalLabel?: string;
+  verifyTemplate?: VerifyCheck[];
   generatedAt: string;
 };
 

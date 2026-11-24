@@ -68,8 +68,11 @@ export function FormSarathiApp() {
           FormSarathi
         </h1>
         <p className="mt-3 max-w-2xl text-lg text-slate-600">
-          Upload an Indian form or try a sample. Get plain-language guidance, a checklist, and a
-          downloadable draft in English and Hindi.
+          Upload an Indian form or try a sample. Get plain-language guidance, a shareable checklist,
+          verification hints, and an editable draft PDF in English and Hindi.
+        </p>
+        <p className="mt-2 text-xs text-slate-500">
+          Privacy: uploads are processed in memory only; nothing is stored on our servers.
         </p>
       </header>
 
@@ -140,7 +143,26 @@ export function FormSarathiApp() {
         </div>
       )}
 
-      {analysis && <AnalysisPanel analysis={analysis} source={source} />}
+      {analysis && (
+        <div className="space-y-4">
+          <ClearResultsButton onClear={() => setAnalysis(null)} />
+          <AnalysisPanel analysis={analysis} source={source} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ClearResultsButton({ onClear }: { onClear: () => void }) {
+  return (
+    <div className="flex justify-end">
+      <button
+        type="button"
+        onClick={onClear}
+        className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+      >
+        Clear results
+      </button>
     </div>
   );
 }

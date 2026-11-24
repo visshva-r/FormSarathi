@@ -34,6 +34,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const maxBytes = 8 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      return NextResponse.json(
+        { error: "File too large. Maximum size is 8 MB." },
+        { status: 400 },
+      );
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
     const base64 = buffer.toString("base64");
 
