@@ -80,10 +80,23 @@ export function FormSarathiApp() {
         </p>
       </header>
 
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden
+        accept="image/*,application/pdf"
+        disabled={loading}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) uploadFile(f);
+          e.target.value = "";
+        }}
+      />
       <div
-        role="button"
         tabIndex={0}
-        aria-label="Upload a form photo or PDF"
+        aria-label="Upload a form photo or PDF. Press Enter or Space to choose a file."
         className={`mb-8 rounded-2xl border-2 border-dashed p-8 text-center transition outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 ${
           drag ? "border-teal-600 bg-teal-50" : "border-slate-300 bg-white"
         }`}
@@ -93,6 +106,9 @@ export function FormSarathiApp() {
         }}
         onDragLeave={() => setDrag(false)}
         onDrop={onDrop}
+        onClick={(e) => {
+          if (e.target === e.currentTarget && !loading) fileInputRef.current?.click();
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -103,20 +119,14 @@ export function FormSarathiApp() {
         <p className="text-sm font-medium text-slate-700">
           Drop a form photo or PDF here, or choose a file
         </p>
-        <label className="mt-4 inline-block cursor-pointer rounded-xl bg-teal-800 px-6 py-2.5 text-sm font-semibold text-white hover:bg-teal-900">
+        <button
+          type="button"
+          disabled={loading}
+          className="mt-4 inline-block cursor-pointer rounded-xl bg-teal-800 px-6 py-2.5 text-sm font-semibold text-white hover:bg-teal-900 disabled:opacity-60"
+          onClick={() => fileInputRef.current?.click()}
+        >
           Upload form
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept="image/*,application/pdf"
-            disabled={loading}
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) uploadFile(f);
-            }}
-          />
-        </label>
+        </button>
         {loading && <p className="mt-3 text-sm text-teal-800">Analyzing…</p>}
       </div>
 

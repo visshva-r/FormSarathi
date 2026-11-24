@@ -38,6 +38,7 @@ export function AnalysisPanel({
     Object.fromEntries(analysis.fields.map((f) => [f.id, f.suggestedAnswer ?? ""])),
   );
   const [copied, setCopied] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [idVerifying, setIdVerifying] = useState(false);
   const [idVerifyError, setIdVerifyError] = useState<string | null>(null);
   const [idLiveCheck, setIdLiveCheck] = useState<{
@@ -339,10 +340,25 @@ export function AnalysisPanel({
             </div>
             <button
               type="button"
-              onClick={() => downloadDraftPdf(analysisForPdf)}
-              className="rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-semibold text-slate-900 hover:bg-amber-400"
+              disabled={pdfLoading}
+              onClick={async () => {
+                setPdfLoading(true);
+                try {
+                  await downloadDraftPdf(analysisForPdf, { locale: lang });
+                } catch {
+                  setPdfLoading(false);
+                  await downloadDraftPdf(analysisForPdf, { locale: "en" });
+                } finally {
+                  setPdfLoading(false);
+                }
+              }}
+              className="rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-semibold text-slate-900 hover:bg-amber-400 disabled:opacity-60"
             >
-              Download draft PDF (with your edits)
+              {pdfLoading
+                ? "Preparing PDF…"
+                : lang === "hi"
+                  ? "Download draft PDF (English + Hindi checklist)"
+                  : "Download draft PDF (with your edits)"}
             </button>
           </div>
         )}
