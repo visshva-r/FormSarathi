@@ -58,6 +58,7 @@ Flow:
 2. Read buffer; base64-encode for Gemini inline data.
 3. Prompt demands strict JSON matching `FormAnalysis` shape (`src/types/form.ts`).
 4. **Zod** validation via `src/lib/analysis-schema.ts`; **one automatic retry** on invalid JSON.
+5. **Unit tests** for deterministic name matching (`src/lib/match.test.ts`, `npm test` in CI).
 5. Fields may include `confidence` and `sourceText` from the model (defaults applied when missing).
 
 Errors: `400` invalid file, `503` missing `GEMINI_API_KEY`, `500` model/parse failure (message surfaced to UI).

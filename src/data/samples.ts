@@ -166,6 +166,8 @@ export const SAMPLE_ANALYSES: Record<string, FormAnalysis> = {
       { id: "account", label: "Account number", suggestedAnswer: "[Your savings account number]" },
       { id: "occupation", label: "Occupation / source of funds", suggestedAnswer: "[Student / Salaried / Business]" },
     ],
+    portalUrl: "https://www.rbi.org.in",
+    portalLabel: "RBI (banking regulations hub)",
     generatedAt: now(),
   },
   "college-admission": {
@@ -188,6 +190,8 @@ export const SAMPLE_ANALYSES: Record<string, FormAnalysis> = {
       { id: "roll", label: "Entrance exam roll number", suggestedAnswer: "[Roll from admit card]" },
       { id: "pref1", label: "First course preference", suggestedAnswer: "[e.g. B.Tech CSE]" },
     ],
+    portalUrl: "https://josaa.nic.in",
+    portalLabel: "JoSAA / admission counselling",
     generatedAt: now(),
   },
   "ration-scheme": {
@@ -209,6 +213,8 @@ export const SAMPLE_ANALYSES: Record<string, FormAnalysis> = {
       { id: "rc", label: "Ration card number", suggestedAnswer: "[Number from card]" },
       { id: "fps", label: "Fair Price Shop code", suggestedAnswer: "[Local FPS ID]" },
     ],
+    portalUrl: "https://nfsa.gov.in",
+    portalLabel: "NFSA / PDS information",
     generatedAt: now(),
   },
 };

@@ -112,6 +112,13 @@ export function AnalysisPanel({
     speakText(text, lang);
   };
 
+  const onReadChecklist = () => {
+    const steps = analysis.checklist
+      .map((c) => `${c.step}. ${lang === "en" ? c.action : c.actionHi}`)
+      .join(". ");
+    speakText(steps, lang);
+  };
+
   return (
     <div className="rounded-2xl border border-teal-900/10 bg-white shadow-lg shadow-teal-950/5">
       <div className="border-b border-teal-900/10 px-6 py-4">
@@ -201,6 +208,13 @@ export function AnalysisPanel({
                 className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
               >
                 {copied ? "Copied!" : "Copy checklist"}
+              </button>
+              <button
+                type="button"
+                onClick={onReadChecklist}
+                className="rounded-lg bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-200"
+              >
+                Read checklist aloud
               </button>
             </div>
             {analysis.portalUrl && (
