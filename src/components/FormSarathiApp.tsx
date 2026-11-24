@@ -34,6 +34,10 @@ export function FormSarathiApp() {
   }, []);
 
   const uploadFile = useCallback(async (file: File) => {
+    if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
+      setError("Upload a JPEG, PNG, WebP image or PDF.");
+      return;
+    }
     setLoading(true);
     setError(null);
     const fd = new FormData();

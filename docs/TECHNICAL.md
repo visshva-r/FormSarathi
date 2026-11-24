@@ -30,6 +30,13 @@ flowchart TB
 | Hosting | Vercel |
 | CI | GitHub Actions (`npm run lint`, `npm run build`) |
 
+## API: `POST /api/verify`
+
+Multipart: `idFile` (image, max 8 MB), `draftName` (string).
+
+1. Gemini 2.5 Flash extracts `fullName` from the ID image (`src/lib/gemini-id.ts`).
+2. `compareNames()` in `src/lib/match.ts` returns `match` / `typo` / `mismatch` (deterministic).
+
 ## API: `POST /api/analyze`
 
 ### Sample mode (JSON)

@@ -38,6 +38,14 @@ export function AnalysisPanel({
     Object.fromEntries(analysis.fields.map((f) => [f.id, f.suggestedAnswer ?? ""])),
   );
   const [copied, setCopied] = useState(false);
+  const [idVerifying, setIdVerifying] = useState(false);
+  const [idVerifyError, setIdVerifyError] = useState<string | null>(null);
+  const [idLiveCheck, setIdLiveCheck] = useState<{
+    severity: "ok" | "warn" | "error";
+    messageEn: string;
+    messageHi: string;
+    extractedName: string;
+  } | null>(null);
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "explain", label: "Explain" },
@@ -110,6 +118,42 @@ export function AnalysisPanel({
   const onReadSummary = () => {
     const text = lang === "en" ? analysis.summaryEn : analysis.summaryHi;
     speakText(text, lang);
+  };
+
+  const verifyNameFieldId =
+    analysis.verifyTemplate?.find((v) => v.fieldId)?.fieldId ?? "name";
+
+  const onUploadIdVerify = async (file: File) => {
+    setIdVerifyError(null);
+    setIdLiveCheck(null);
+    if (!file.type.startsWith("image/")) {
+      setIdVerifyError("Upload a photo of Aadhaar, PAN, or similar (JPEG/PNG).");
+      return;
+    }
+    const draftName = draftValues[verifyNameFieldId] ?? "";
+    if (!draftName) {
+      setIdVerifyError("Fill the name field on the Draft tab first.");
+      return;
+    }
+    setIdVerifying(true);
+    try {
+      const fd = new FormData();
+      fd.append("idFile", file);
+      fd.append("draftName", draftName);
+      const res = await fetch("/api/verify", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Verification failed");
+      setIdLiveCheck({
+        severity: data.severity,
+        messageEn: data.messageEn,
+        messageHi: data.messageHi,
+        extractedName: data.extractedName,
+      });
+    } catch (e) {
+      setIdVerifyError(e instanceof Error ? e.message : "Verification failed");
+    } finally {
+      setIdVerifying(false);
+    }
   };
 
   const onReadChecklist = () => {
@@ -321,6 +365,44 @@ export function AnalysisPanel({
                   <strong>Demo ID:</strong> name on card is <strong>Priya Sharma</strong>. Compare
                   with your Draft name field — fix typos before applying.
                 </p>
+              </div>
+            ) : null}
+            {analysis.verifyTemplate?.length ? (
+              <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-4">
+                <p className="text-sm font-semibold text-teal-900">Live ID cross-check (Gemini)</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  Upload a photo of your ID. We extract the name and compare it to your Draft name
+                  using deterministic matching — not the model&apos;s opinion alone.
+                </p>
+                <label className="mt-3 inline-block cursor-pointer rounded-lg bg-teal-800 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-900">
+                  {idVerifying ? "Verifying…" : "Upload ID photo"}
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    disabled={idVerifying}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) onUploadIdVerify(f);
+                    }}
+                  />
+                </label>
+                {idVerifyError && (
+                  <p className="mt-2 text-sm text-amber-900">{idVerifyError}</p>
+                )}
+                {idLiveCheck && (
+                  <p
+                    className={`mt-3 rounded-lg border px-3 py-2 text-sm ${
+                      idLiveCheck.severity === "ok"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                        : idLiveCheck.severity === "warn"
+                          ? "border-amber-200 bg-amber-50 text-amber-950"
+                          : "border-red-200 bg-red-50 text-red-950"
+                    }`}
+                  >
+                    {lang === "en" ? idLiveCheck.messageEn : idLiveCheck.messageHi}
+                  </p>
+                )}
               </div>
             ) : null}
             {liveVerify.length === 0 ? (
