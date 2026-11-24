@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SAMPLE_FORMS } from "@/data/samples";
 import type { FormAnalysis } from "@/types/form";
 import { AnalysisPanel } from "./AnalysisPanel";
@@ -12,6 +12,13 @@ export function FormSarathiApp() {
   const [error, setError] = useState<string | null>(null);
   const [drag, setDrag] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (analysis) {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [analysis]);
 
   const runSample = useCallback(async (sampleId: string) => {
     setLoading(true);
@@ -75,7 +82,7 @@ export function FormSarathiApp() {
           Upload an Indian form or try a sample. Get plain-language guidance, a shareable checklist,
           verification hints, and an editable draft PDF in English and Hindi.
         </p>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs font-medium text-slate-700">
           Privacy: uploads are processed in memory only; nothing is stored on our servers.
         </p>
       </header>
@@ -131,7 +138,7 @@ export function FormSarathiApp() {
       </div>
 
       <section className="mb-8">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-800">
           Sample forms
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -158,7 +165,7 @@ export function FormSarathiApp() {
       )}
 
       {analysis && (
-        <div className="space-y-4">
+        <div ref={resultsRef} className="scroll-mt-6 space-y-4">
           <ClearResultsButton onClear={() => setAnalysis(null)} />
           <AnalysisPanel
             key={analysis.generatedAt}
