@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="260" viewBox="0 0 420 260">
+  <rect width="420" height="260" fill="#f8fafc" stroke="#0f6b6b" stroke-width="2" rx="8"/>
+  <text x="24" y="40" font-family="Arial,sans-serif" font-size="14" fill="#64748b">DEMO — NOT A REAL AADHAAR</text>
+  <text x="24" y="80" font-family="Arial,sans-serif" font-size="18" font-weight="bold" fill="#0b2e3a">Government of India</text>
+  <text x="24" y="108" font-family="Arial,sans-serif" font-size="14" fill="#334155">Name / नाम</text>
+  <text x="24" y="132" font-family="Arial,sans-serif" font-size="22" font-weight="bold" fill="#0b2e3a">PRIYA SHARMA</text>
+  <text x="24" y="168" font-family="Arial,sans-serif" font-size="14" fill="#334155">DOB / जन्म तिथि</text>
+  <text x="24" y="192" font-family="Arial,sans-serif" font-size="16" fill="#0b2e3a">01/05/2004</text>
+  <text x="24" y="228" font-family="Arial,sans-serif" font-size="12" fill="#64748b">Use to cross-check scholarship draft name field</text>
+</svg>

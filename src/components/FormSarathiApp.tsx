@@ -146,7 +146,11 @@ export function FormSarathiApp() {
       {analysis && (
         <div className="space-y-4">
           <ClearResultsButton onClear={() => setAnalysis(null)} />
-          <AnalysisPanel analysis={analysis} source={source} />
+          <AnalysisPanel
+            key={analysis.generatedAt}
+            analysis={analysis}
+            source={source}
+          />
         </div>
       )}
     </div>

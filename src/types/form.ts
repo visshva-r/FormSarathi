@@ -1,8 +1,12 @@
+export type FieldConfidence = "high" | "medium" | "low";
+
 export type FormField = {
   id: string;
   label: string;
   hint?: string;
   suggestedAnswer?: string;
+  confidence?: FieldConfidence;
+  sourceText?: string;
 };
 
 export type VerifyCheck = {

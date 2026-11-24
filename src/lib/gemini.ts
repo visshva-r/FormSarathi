@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { FormAnalysis } from "@/types/form";
+import { parseFormAnalysisJson } from "@/lib/analysis-schema";
 
 const SCHEMA_HINT = `Return ONLY valid JSON matching this shape:
 {
@@ -11,8 +12,22 @@ const SCHEMA_HINT = `Return ONLY valid JSON matching this shape:
   "checklist": [{"step": number, "action": string, "actionHi": string}],
   "requiredDocuments": string[],
   "pitfalls": string[],
-  "fields": [{"id": string, "label": string, "suggestedAnswer": string}]
-}`;
+  "fields": [{"id": string, "label": string, "suggestedAnswer": string, "confidence": "high"|"medium"|"low", "sourceText": string}]
+}
+For each field, include confidence (high if clearly read from form, low if guessed) and optional sourceText quoting the form.`;
+
+async function generateRaw(
+  model: ReturnType<GoogleGenerativeAI["getGenerativeModel"]>,
+  prompt: string,
+  base64: string,
+  mimeType: string,
+) {
+  const result = await model.generateContent([
+    { text: prompt },
+    { inlineData: { mimeType, data: base64 } },
+  ]);
+  return result.response.text();
+}
 
 export async function analyzeWithGemini(
   base64: string,
@@ -27,28 +42,24 @@ export async function analyzeWithGemini(
   const modelId = process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
   const model = genAI.getGenerativeModel({ model: modelId });
 
-  const prompt = `You are FormSarathi, a Civic Document Intelligence assistant for India.
+  const basePrompt = `You are FormSarathi, a Civic Document Intelligence assistant for India.
 Analyze this government/bank/college/scheme form image or PDF page.
 ${SCHEMA_HINT}
 Use simple Hindi (Devanagari) for summaryHi, meaningHi, actionHi.
 Be practical and accurate; if unclear, state assumptions in summaryEn.`;
 
-  const result = await model.generateContent([
-    { text: prompt },
-    {
-      inlineData: {
-        mimeType,
-        data: base64,
-      },
-    },
-  ]);
-
-  const text = result.response.text();
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error("Model did not return JSON");
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const prompt =
+        attempt === 0
+          ? basePrompt
+          : `${basePrompt}\n\nIMPORTANT: Your previous response was invalid JSON. Return ONLY one JSON object, no markdown.`;
+      const text = await generateRaw(model, prompt, base64, mimeType);
+      return parseFormAnalysisJson(text);
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error("Analysis parse failed");
+    }
   }
-
-  const parsed = JSON.parse(jsonMatch[0]) as Omit<FormAnalysis, "generatedAt">;
-  return { ...parsed, generatedAt: new Date().toISOString() };
+  throw lastError ?? new Error("Analysis failed after retry");
 }

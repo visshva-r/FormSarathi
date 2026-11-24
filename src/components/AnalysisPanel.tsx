@@ -1,13 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { FormAnalysis } from "@/types/form";
 import { downloadDraftPdf } from "@/lib/export-pdf";
 import { speakText } from "@/lib/speech";
 import { buildChecklistText, whatsAppShareUrl } from "@/lib/share-checklist";
 import { compareNames } from "@/lib/match";
+import type { FieldConfidence } from "@/types/form";
 
 type Tab = "explain" | "checklist" | "draft" | "verify";
+
+function ConfidenceBadge({ level }: { level: FieldConfidence }) {
+  const styles =
+    level === "high"
+      ? "bg-emerald-100 text-emerald-900"
+      : level === "medium"
+        ? "bg-amber-100 text-amber-950"
+        : "bg-red-100 text-red-950";
+  const label = level === "high" ? "High confidence" : level === "medium" ? "Verify" : "Low confidence";
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${styles}`}>
+      {label}
+    </span>
+  );
+}
 
 export function AnalysisPanel({
   analysis,
@@ -18,16 +34,10 @@ export function AnalysisPanel({
 }) {
   const [tab, setTab] = useState<Tab>("explain");
   const [lang, setLang] = useState<"en" | "hi">("en");
-  const [draftValues, setDraftValues] = useState<Record<string, string>>({});
+  const [draftValues, setDraftValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(analysis.fields.map((f) => [f.id, f.suggestedAnswer ?? ""])),
+  );
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    const initial: Record<string, string> = {};
-    analysis.fields.forEach((f) => {
-      initial[f.id] = f.suggestedAnswer ?? "";
-    });
-    setDraftValues(initial);
-  }, [analysis]);
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "explain", label: "Explain" },
@@ -247,10 +257,18 @@ export function AnalysisPanel({
             <div className="space-y-3">
               {analysis.fields.map((f) => (
                 <label key={f.id} className="block">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-teal-800">
-                    {f.label}
-                  </span>
-                  {f.hint && <span className="ml-2 text-xs text-amber-800">({f.hint})</span>}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-teal-800">
+                      {f.label}
+                    </span>
+                    {f.confidence && (
+                      <ConfidenceBadge level={f.confidence} />
+                    )}
+                    {f.hint && <span className="text-xs text-amber-800">({f.hint})</span>}
+                  </div>
+                  {f.sourceText && (
+                    <p className="mt-0.5 text-xs text-slate-500">From form: “{f.sourceText}”</p>
+                  )}
                   <input
                     className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                     value={draftValues[f.id] ?? ""}
@@ -277,6 +295,20 @@ export function AnalysisPanel({
               Rejection guard: cross-check draft spelling against supporting IDs before you submit.
               Edit the Draft tab and return here to refresh.
             </p>
+            {analysis.verifyTemplate?.length ? (
+              <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/demo/id-sample.svg"
+                  alt="Demo Aadhaar card showing name Priya Sharma"
+                  className="h-auto w-full max-w-[220px] rounded-lg border border-slate-200 bg-white"
+                />
+                <p className="text-sm text-slate-700">
+                  <strong>Demo ID:</strong> name on card is <strong>Priya Sharma</strong>. Compare
+                  with your Draft name field — fix typos before applying.
+                </p>
+              </div>
+            ) : null}
             {liveVerify.length === 0 ? (
               <p className="text-sm text-slate-500">No verification rules for this form yet.</p>
             ) : (
